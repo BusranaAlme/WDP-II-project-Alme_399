@@ -1,24 +1,50 @@
-// src/index.js
-
 const express = require('express');
+// index.js
+const taskRoutes = require('./routes/tasks'); // instead of './tasks'
+ // Import task routes
+
 const app = express();
-const port = 3000;
 
-//  1. Import the router file
-const taskRoutes = require('./routes/tasks');
+// ==========================================
+// MIDDLEWARE
+// ==========================================
+// Parse JSON request bodies (MUST be before routes)
+app.use(express.json());
 
-//  2. Use the router for all routes
-app.use('/', taskRoutes);
+// ==========================================
+// ROUTES
+// ==========================================
 
-// 3. Add the /health route
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    uptime: process.uptime() // shows how long the app has been running
+// Root route - API welcome message
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Task Manager API',
+    version: '1.0.0',
+    endpoints: {
+      tasks: '/tasks',
+      health: '/health'
+    }
   });
 });
 
-// 4. Start the server
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+// Health check route
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Mount task routes at /tasks
+app.use('/tasks', taskRoutes);
+
+// ==========================================
+// START SERVER
+// ==========================================
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(`📝 Tasks API: http://localhost:${PORT}/tasks`);
 });
